@@ -1,20 +1,15 @@
 #include <Encoder.h>
 #include <FastLED.h>
 
-const int ledPin = 13; // Onboard LED
-const int ledStripPin = 6; // Digital pin for the LED strip
-const int encoderPinA = 2;
-const int encoderPinB = 3;
-const int numLeds = 10; // Number of LEDs in the WS2812B strip
-const int brightness = 50; // LED brightness (0-255)
+const int ledPin = 13; // Onboard LED, also used for summer.
+int first_run = 0;
 
-unsigned long currentMillis = 0;
-unsigned long stripPreviousMillis = 0;
+// LED strip variables
+const int ledStripPin = 19; // Digital pin for the LED strip
+const int numLeds = 22; // Number of LEDs in the WS2812B strip
+const int brightness = 60; // LED brightness (0-255)
 int stripBlinkDuration = 0;
 CRGB leds[numLeds];
-
-Encoder myEncoder(encoderPinA, encoderPinB);
-long encoderValue = 0;
 
 // Variables for blinking the LED strip:
 int blink_enabled = 0;
@@ -23,6 +18,13 @@ const int blinkDuration = 25;
 const int blinkDelays[] = {25, 30, 50, 75, 100, 150, 200, 300, 500, 1000}; // 10 distinct steps
 int currentBlinkDelayIndex = 9; // Start with longer delay
 
+// Rotary encoder variables
+const int encoderPinA = A3;
+const int encoderPinB = A2;
+unsigned long currentMillis = 0;
+unsigned long stripPreviousMillis = 0;
+Encoder myEncoder(encoderPinA, encoderPinB);
+long encoderValue = 0;
 int pulseCounter = 0;
 
 void setup() {
@@ -35,12 +37,20 @@ void setup() {
 }
 
 void loop() {
-  long newEncoderValue = myEncoder.read();
+  if (first_run == 0) {
+    // Set led color if first run (because we haven't got any input from the rotary encoder yet)
+    setLEDColor();
+    first_run = 1;
+  }
 
+  // Handle rotary encoder:
+  long newEncoderValue = myEncoder.read();
   if (newEncoderValue > encoderValue) {
     pulseCounter++;
 
-    if (pulseCounter == 4) {
+    // My encoder seems to give about 5 pulses/click:
+    if (pulseCounter == 5) {
+      //Serial.println("+");
       increaseBlinkDelay();
       printBlinkDelay();
       setLEDColor(); // Set LED color based on blink delay
@@ -49,7 +59,8 @@ void loop() {
   } else if (newEncoderValue < encoderValue) {
     pulseCounter++;
 
-    if (pulseCounter == 4) {
+    if (pulseCounter == 5) {
+      //Serial.println("-");
       decreaseBlinkDelay();
       printBlinkDelay();
       setLEDColor(); // Set LED strip color based on blink delay
@@ -77,6 +88,7 @@ void decreaseBlinkDelay() {
   }
 }
 
+// Debugging. Print each time the blink/beep delay changes:
 void printBlinkDelay() {
   Serial.print("Blink Delay: ");
   Serial.print(blinkDelays[currentBlinkDelayIndex]);
@@ -86,6 +98,7 @@ void printBlinkDelay() {
 void setLEDColor() {
   int blinkDelay = blinkDelays[currentBlinkDelayIndex];
   blink_enabled = 0;
+  //Serial.println("Setting LED color");
   
   if (blinkDelay <= 25) {
     fill_solid(leds, numLeds, CRGB::Red);
