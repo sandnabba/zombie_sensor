@@ -1,6 +1,6 @@
 # Halloween Zombie Sensor
 
-An Arduino, a LED strip, a summer a rotary encoder... And a tennis racket!  
+An Arduino, a LED strip, a summer, a rotary encoder... And a tennis racket!  
 I built this as a "zombie infection scanner" for Halloween, but it could be used for anything that you can imagine! Radiation scanner or alien detector? It's up to you!
 
 [<img src="img/overview.jpg" style="width:400px;"/>](./img/overview.jpg)
